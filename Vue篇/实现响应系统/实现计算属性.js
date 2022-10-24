@@ -3,7 +3,7 @@
 // 存储副作用函数
 const bucket = new WeakMap()
 
-// 当前激活的副作用函数
+// 当前激活的副作用函数，每次生成新的副作用函数都会触发代理对象的 getter，从而将副作用函数与代理对象绑定
 let activeEffect
 // effect 栈
 const effectStack = []
@@ -57,11 +57,11 @@ function cleanup(effectFn) {
 function getProxyObj(obj) {
     return new Proxy(obj, {
         // 拦截读取操作
-        get(target, key) {
+        get(target, key, receiver) {
             // 处理副作用函数
             track(target, key)
-            // 返回属性值
-            return target[key]
+            // 使用 Reflect.get 返回读取到的属性值
+            return Reflect.get(target, key, receiver)
         },
         // 拦截设置操作
         set(target, key, value) {
